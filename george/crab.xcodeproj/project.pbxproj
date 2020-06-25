@@ -18,6 +18,12 @@
 		370565E6249E96CD00AB4D1F /* crabUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370565E5249E96CD00AB4D1F /* crabUITests.swift */; };
 		370565FA249EA4BD00AB4D1F /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370565F9249EA4BD00AB4D1F /* Player.swift */; };
 		370565FC249EC07200AB4D1F /* GameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370565FB249EC07200AB4D1F /* GameManager.swift */; };
+		376C7B5124A30BA20003D7D5 /* joe_anime.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 376C7B5024A30BA20003D7D5 /* joe_anime.mp3 */; };
+		37B823CE24A3E26F000E4CEF /* left.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37B823CC24A3E26F000E4CEF /* left.wav */; };
+		37B823CF24A3E26F000E4CEF /* up.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37B823CD24A3E26F000E4CEF /* up.wav */; };
+		37B823D224A3E27B000E4CEF /* down.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37B823D024A3E27B000E4CEF /* down.wav */; };
+		37B823D324A3E27C000E4CEF /* right.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37B823D124A3E27B000E4CEF /* right.wav */; };
+		37B823D924A3E862000E4CEF /* eat.wav in Resources */ = {isa = PBXBuildFile; fileRef = 37B823D824A3E862000E4CEF /* eat.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +61,12 @@
 		370565E7249E96CD00AB4D1F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		370565F9249EA4BD00AB4D1F /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		370565FB249EC07200AB4D1F /* GameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameManager.swift; sourceTree = "<group>"; };
+		376C7B5024A30BA20003D7D5 /* joe_anime.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = joe_anime.mp3; sourceTree = "<group>"; };
+		37B823CC24A3E26F000E4CEF /* left.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = left.wav; sourceTree = "<group>"; };
+		37B823CD24A3E26F000E4CEF /* up.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = up.wav; sourceTree = "<group>"; };
+		37B823D024A3E27B000E4CEF /* down.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = down.wav; sourceTree = "<group>"; };
+		37B823D124A3E27B000E4CEF /* right.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = right.wav; sourceTree = "<group>"; };
+		37B823D824A3E862000E4CEF /* eat.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = eat.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +117,7 @@
 		370565BE249E96CB00AB4D1F /* crab */ = {
 			isa = PBXGroup;
 			children = (
+				37B823CB24A3DA86000E4CEF /* Sounds */,
 				370565BF249E96CB00AB4D1F /* AppDelegate.swift */,
 				370565C1249E96CB00AB4D1F /* GameScene.sks */,
 				370565C5249E96CB00AB4D1F /* GameScene.swift */,
@@ -135,6 +148,19 @@
 				370565E7249E96CD00AB4D1F /* Info.plist */,
 			);
 			path = crabUITests;
+			sourceTree = "<group>";
+		};
+		37B823CB24A3DA86000E4CEF /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				37B823CC24A3E26F000E4CEF /* left.wav */,
+				37B823CD24A3E26F000E4CEF /* up.wav */,
+				37B823D124A3E27B000E4CEF /* right.wav */,
+				37B823D024A3E27B000E4CEF /* down.wav */,
+				37B823D824A3E862000E4CEF /* eat.wav */,
+				376C7B5024A30BA20003D7D5 /* joe_anime.mp3 */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -241,10 +267,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37B823CE24A3E26F000E4CEF /* left.wav in Resources */,
+				37B823D224A3E27B000E4CEF /* down.wav in Resources */,
+				37B823D324A3E27C000E4CEF /* right.wav in Resources */,
 				370565CB249E96CB00AB4D1F /* Main.storyboard in Resources */,
 				370565C2249E96CB00AB4D1F /* GameScene.sks in Resources */,
+				37B823D924A3E862000E4CEF /* eat.wav in Resources */,
 				370565CD249E96CC00AB4D1F /* Assets.xcassets in Resources */,
+				376C7B5124A30BA20003D7D5 /* joe_anime.mp3 in Resources */,
 				370565D0249E96CC00AB4D1F /* LaunchScreen.storyboard in Resources */,
+				37B823CF24A3E26F000E4CEF /* up.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

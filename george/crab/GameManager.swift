@@ -23,7 +23,13 @@ class GameManager {
     var fruitResultsSprite: SKSpriteNode?, gFruitResultsSprite: SKSpriteNode?
     var fruitResultsLabel: SKLabelNode?, gFruitResultsLabel: SKLabelNode?, scoreLabel: SKLabelNode?, currentScore: SKLabelNode?, okLabel: SKLabelNode?
     
+    var pauseButton: SKSpriteNode?
+    var pauseMenu: SKNode?
+    var resumeLabel: SKLabelNode?, restartLabel: SKLabelNode?, quitLabel: SKLabelNode?
+    
     var ateFruit: Int = 0, ateGFruit: Int = 0
+    
+    var isPaused: Bool = false
     
     init(_ scene: GameScene!) {
         self.scene = scene
@@ -50,8 +56,8 @@ class GameManager {
         fruitNodes = SKNode()
         control = SKNode()
         cam?.addChild(control!)
-        scene.addChild(cam!)
-        scene.addChild(fruitNodes!)
+        scene.worldNode?.addChild(cam!)
+        scene.worldNode?.addChild(fruitNodes!)
         scene.camera = cam
         initControl()
         initResults()
@@ -59,10 +65,91 @@ class GameManager {
     
     func update(_ time: Double) {
         if player?.player != nil {
-            cam?.position = (player?.player.position)!
+            cam?.position = (player?.player?.position)!
             player?.update()
             toggleZoom()
         }
+    }
+    
+    func pause() {
+        isPaused = true
+        zooming = false
+        for a in arrows {
+            a.run(SKAction.scale(to: 0, duration: 0.1))
+        }
+        for f in (fruitNodes?.children)! {
+            f.run(SKAction.scale(to: 0, duration: 0.18))
+        }
+        player?.player?.run(SKAction.scale(to: 0, duration: 0.17))
+        timeText?.run(SKAction.move(by: CGVector(dx: 0, dy: 200), duration: 0.18))
+        currentScore?.run(SKAction.move(to: CGPoint(x: 0, y: (scene.frame.height / -2) - 100), duration: 0.18))
+        pauseButton?.run(SKAction.fadeOut(withDuration: 0.18))
+        pauseMenu?.run(SKAction.fadeIn(withDuration: 0.199))
+        
+        let waitForPause = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { (waitForPause) in
+            self.scene.worldNode?.isPaused = true
+        }
+        
+        RunLoop.current.add(waitForPause, forMode: RunLoop.Mode.common)
+    }
+    
+    func unpause() {
+        isPaused = false
+        scene.worldNode?.isPaused = false
+        for a in arrows {
+            a.run(SKAction.scale(to: 1, duration: 0.1))
+        }
+        for f in (fruitNodes?.children)! {
+            f.run(SKAction.scale(to: 1, duration: 0.18))
+        }
+        player?.player?.run(SKAction.scale(to: 1, duration: 0.17))
+        timeText?.run(SKAction.move(by: CGVector(dx: 0, dy: -200), duration: 0.18))
+        currentScore?.run(SKAction.move(to: CGPoint(x: 0, y: (scene.frame.height / -2) + 40), duration: 0.18))
+        pauseButton?.run(SKAction.fadeIn(withDuration: 0.18))
+        pauseMenu?.run(SKAction.fadeOut(withDuration: 0.199))
+    }
+    
+    func restart() {
+        unpause()
+        
+        // Player
+        player?.player?.removeFromParent()
+        player?.player = nil
+        
+        // Fruits
+        for f in (self.fruitNodes?.children)! {
+            f.removeFromParent()
+        }
+        
+        // Camera
+        cam?.run(SKAction.move(to: CGPoint(x: 0, y: 0), duration: 0))
+        cam?.run(SKAction.scale(to: 1, duration: 0))
+        
+        // Timer
+        timer?.invalidate()
+        timer = nil
+        timeText?.removeFromParent()
+        timeText = nil
+        startTimer()
+        
+        // Others
+        player?.facingRight = 1
+        currentScore?.text = "Score: 0"
+        mapZoom = 2
+        zooming = false
+        zoomed = false
+        score = 0
+        ateGFruit = 0
+        ateFruit = 0
+    }
+    
+    func quit() {
+        isPaused = false
+        scene.worldNode?.isPaused = false
+        pauseMenu?.run(SKAction.fadeOut(withDuration: 0.2))
+        timer?.invalidate()
+        timer = nil
+        showResults()
     }
     
     // Control
@@ -87,7 +174,7 @@ class GameManager {
                 arrows[i].name = "zoom"
                 arrows[i].run(SKAction.scale(to: 0, duration: 0))
             default:
-                break
+                continue
             }
         }
     }
@@ -98,6 +185,7 @@ class GameManager {
             arrow.position = CGPoint(x: 0, y: (scene.frame.height / -2) + 320)
             arrow.zPosition = 3
             arrow.run(SKAction.scale(to: 0, duration: 0))
+            arrow.alpha = 0.5
             control?.addChild(arrow)
         }
         
@@ -119,19 +207,51 @@ class GameManager {
             }
         }
         
-        // Show CurrentScore
+        // Show CurrentScore and PauseButton
         currentScore?.run(SKAction.move(to: CGPoint(x: 0, y: (scene.frame.height / -2) + 40), duration: 0.3))
+        pauseButton?.run(SKAction.fadeIn(withDuration: 0.5))
     }
     
-    private func initGFruit() {
-        let pos = CGPoint(x: Int.random(in: (-400 * mapZoom * 2) ... (400 * mapZoom * 2)), y: Int.random(in: (-400 * mapZoom * 2) ... (400 * mapZoom * 2)))
-        gFruit = SKSpriteNode(imageNamed: "golden_apple.png")
-        gFruit?.name = "gFruit"
-        gFruit?.size = CGSize(width: 40 * mapZoom * 2, height: 40 * mapZoom * 2)
-        gFruit?.position = pos
-        gFruit?.physicsBody = SKPhysicsBody(circleOfRadius: (fruit?.size.width)! / 3)
-        gFruit?.physicsBody?.affectedByGravity = false
-        fruitNodes?.addChild(gFruit!)
+    func touchNode(name: String) {
+        if !(scene?.allowMovement)! || isPaused { return }
+        switch name {
+        case "up":
+            player?.movePlayer(1)
+            arrows[0].alpha = 1
+        case "down":
+            player?.movePlayer(2)
+            arrows[1].alpha = 1
+        case "right":
+            player?.movePlayer(3)
+            arrows[2].alpha = 1
+        case "left":
+            player?.movePlayer(4)
+            arrows[3].alpha = 1
+        case "zoom":
+            zooming = true
+            arrows[4].alpha = 1
+        default:
+            break
+        }
+    }
+    
+    func uInteract(_ name: String) {
+        switch name {
+        case "play":
+            scene.playGame()
+        case "ok":
+            if showingResults { endResults() }
+        case "pause":
+            pause()
+        case "resume":
+            unpause()
+        case "restart":
+            restart()
+        case "quit":
+            quit()
+        default:
+            break
+        }
     }
     
     func initFruit(_ first: Bool) {
@@ -148,22 +268,15 @@ class GameManager {
         fruitNodes?.addChild(fruit!)
     }
     
-    func touchNode(name: String) {
-        if !(scene?.allowMovement)! { return }
-        switch name {
-        case "up":
-            player?.movePlayer(1)
-        case "down":
-            player?.movePlayer(2)
-        case "right":
-            player?.movePlayer(3)
-        case "left":
-            player?.movePlayer(4)
-        case "zoom":
-            zooming = true
-        default:
-            break
-        }
+    private func initGFruit() {
+        let pos = CGPoint(x: Int.random(in: (-400 * mapZoom * 2) ... (400 * mapZoom * 2)), y: Int.random(in: (-400 * mapZoom * 2) ... (400 * mapZoom * 2)))
+        gFruit = SKSpriteNode(imageNamed: "golden_apple.png")
+        gFruit?.name = "gFruit"
+        gFruit?.size = CGSize(width: 40 * mapZoom * 2, height: 40 * mapZoom * 2)
+        gFruit?.position = pos
+        gFruit?.physicsBody = SKPhysicsBody(circleOfRadius: (fruit?.size.width)! / 3)
+        gFruit?.physicsBody?.affectedByGravity = false
+        fruitNodes?.addChild(gFruit!)
     }
     
     func interact(_ node: SKNode) {
@@ -177,6 +290,12 @@ class GameManager {
         }
     }
     
+    func changeAlpha() {
+        for arrow in arrows {
+            arrow.alpha = 0.5
+        }
+    }
+    
     func startTimer() {
         timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(onTimerFires), userInfo: nil, repeats: true)
         timeLeft = 180
@@ -186,11 +305,11 @@ class GameManager {
         timeText?.position = CGPoint(x: 0, y: (scene.frame.height / 2))
         timeText?.text = "Time left: 3:00"
         cam?.addChild(timeText!)
-        timeText?.run(SKAction.move(by: CGVector(dx: 0, dy: -150), duration: 0.3))
+        timeText?.run(SKAction.move(by: CGVector(dx: 0, dy: -105), duration: 0.3))
     }
     
     @objc private func onTimerFires() {
-        timeLeft! -= 1
+        if !isPaused { timeLeft! -= 1 }
         let calcTime = IntToMinutesSeconds(seconds: Int(timeLeft!))
         let timeSecString = (calcTime.1 < 10) ? "0\(calcTime.1)" : "\(calcTime.1)"
         timeText?.text = ("Time left: \(calcTime.0):\(timeSecString)")
@@ -198,14 +317,15 @@ class GameManager {
         if timeLeft! <= 0 {
             timer?.invalidate()
             timer = nil
+            scene.allowMovement = false
             showResults()
         }
     }
     
     private func eatFruit(_ node: SKSpriteNode) {
+        scene.run(SKAction.playSoundFileNamed("eat.wav", waitForCompletion: false))
         if node.name == "fruit" {
             score += Double(node.size.width / 80)
-            print(node.size.width / 80)
             ateFruit += 1
             player?.updateSize(node.size.width)
             currentScore?.text = "Score: \(Int(score))"
@@ -222,7 +342,7 @@ class GameManager {
                 initFruit(false)
                 initFruit(false)
             }
-            if(Int.random(in: 0...100) == 3) {
+            if(Int.random(in: 0...50) == 3) {
                 initGFruit()
             }
             if(Int.random(in: 0...4) > 2) {
@@ -271,7 +391,7 @@ class GameManager {
         resultsLabel?.fontSize = 120
         resultsLabel?.fontName = "ArialRoundedMTBold"
         resultsLabel?.fontColor = SKColor.white
-        resultsLabel?.position = CGPoint(x: 0, y: scene.frame.height)
+        resultsLabel?.position = CGPoint(x: 0, y: (scene.frame.height / 2) + 200)
         
         // Score
         scoreLabel = SKLabelNode(text: "Score: 0")
@@ -286,6 +406,37 @@ class GameManager {
         currentScore?.fontColor = SKColor.white
         currentScore?.position = CGPoint(x: 0, y: (scene.frame.height / -2) - 100)
         currentScore?.zPosition = 3
+        
+        // Pausing
+        pauseButton = SKSpriteNode(imageNamed: "pause.png")
+        pauseButton?.position = CGPoint(x: (scene.frame.width / 2) - 82, y: (scene.frame.height / 2) - 82)
+        pauseButton?.size = CGSize(width: 50, height: 50)
+        pauseButton?.name = "pause"
+        pauseButton?.run(SKAction.fadeOut(withDuration: 0))
+        
+        pauseMenu = SKNode()
+        resumeLabel = SKLabelNode(text: "Resume")
+        resumeLabel?.position = CGPoint(x: 0, y: 100)
+        resumeLabel?.fontSize = 75
+        resumeLabel?.fontColor = SKColor.white
+        resumeLabel?.name = "resume"
+        
+        restartLabel = SKLabelNode(text: "Restart")
+        restartLabel?.position = CGPoint(x: 0, y: -10)
+        restartLabel?.fontSize = 75
+        restartLabel?.fontColor = SKColor.white
+        restartLabel?.name = "restart"
+        
+        quitLabel = SKLabelNode(text: "Quit Game")
+        quitLabel?.position = CGPoint(x: 0, y: -120)
+        quitLabel?.fontSize = 75
+        quitLabel?.fontColor = SKColor.white
+        quitLabel?.name = "quit"
+        
+        pauseMenu?.addChild(resumeLabel!)
+        pauseMenu?.addChild(restartLabel!)
+        pauseMenu?.addChild(quitLabel!)
+        pauseMenu?.run(SKAction.fadeOut(withDuration: 0))
         
         // Ok
         okLabel = SKLabelNode(text: "OK")
@@ -323,6 +474,8 @@ class GameManager {
         cam?.addChild(resultsLabel!)
         cam?.addChild(scoreLabel!)
         cam?.addChild(currentScore!)
+        cam?.addChild(pauseButton!)
+        cam?.addChild(pauseMenu!)
         cam?.addChild(okLabel!)
         cam?.addChild(fruitResultsSprite!)
         cam?.addChild(gFruitResultsSprite!)
@@ -331,7 +484,6 @@ class GameManager {
     }
     
     private func showResults() {
-        player?.end()
         
         // Control
         
@@ -342,9 +494,9 @@ class GameManager {
         arrows = []
         initControl()
         
-        // Fruits
+        player?.end()
         
-        for f in (fruitNodes?.children)! {
+        for f in (self.fruitNodes?.children)! {
             f.run(SKAction.scale(to: 0, duration: 0.2))
             let rFP = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) {(rFP) in
                 f.removeFromParent()
@@ -362,12 +514,12 @@ class GameManager {
         scene.inGame = false
         
         // Others
-        scene.allowMovement = false
         timeText?.removeFromParent()
         timeText = nil
         showingResults = true
         okLabel?.isHidden = false
         currentScore?.text = "Score: 0"
+        pauseButton?.run(SKAction.fadeOut(withDuration: 0.3))
         
         // Show Results
         
@@ -377,21 +529,21 @@ class GameManager {
         currentScore?.run(SKAction.move(to: CGPoint(x: 0, y: (scene.frame.height / -2) - 100), duration: 0.3))
         
         let sResults = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { (sResults) in
-            self.resultsLabel?.run(SKAction.move(to: CGPoint(x: 0, y: (self.scene.frame.height / 4)), duration: 0.7))
+            self.resultsLabel?.run(SKAction.move(to: CGPoint(x: 0, y: (self.scene.frame.height / 4)), duration: 0.3))
             
             self.scoreLabel?.run(SKAction.sequence([
-                SKAction.wait(forDuration: 0.3),
-                SKAction.fadeIn(withDuration: 0.5)
+                SKAction.wait(forDuration: 3),
+                SKAction.fadeIn(withDuration: 1)
             ]))
             
             self.fruitResultsSprite?.run(SKAction.sequence([
                 SKAction.wait(forDuration: 1.0),
-                SKAction.move(to: CGPoint(x: -100, y: 60), duration: 0.4)
+                SKAction.move(to: CGPoint(x: -80, y: 60), duration: 0.4)
             ]))
 
             self.gFruitResultsSprite?.run(SKAction.sequence([
                 SKAction.wait(forDuration: 1.4),
-                SKAction.move(to: CGPoint(x: -100, y: -80), duration: 0.4)
+                SKAction.move(to: CGPoint(x: -80, y: -80), duration: 0.4)
             ]))
 
 
@@ -406,7 +558,7 @@ class GameManager {
             ]))
             
             self.okLabel?.run(SKAction.sequence([
-                SKAction.wait(forDuration: 3.6),
+                SKAction.wait(forDuration: 4),
                 SKAction.fadeIn(withDuration: 0.5)
             ]))
         }
@@ -415,15 +567,15 @@ class GameManager {
     
     func endResults() {
         showingResults = false
-        resultsLabel?.run(SKAction.move(to: CGPoint(x: 0, y: scene.frame.height), duration: 0.3))
-        fruitResultsSprite?.run(SKAction.move(to: CGPoint(x: scene.frame.width / -1.5, y: 60), duration: 0.3))
-        gFruitResultsSprite?.run(SKAction.move(to: CGPoint(x: scene.frame.width / -1.5, y: -80), duration: 0.3))
-        fruitResultsLabel?.run(SKAction.move(to: CGPoint(x: scene.frame.width / 1.5, y: 40), duration: 0.3))
-        gFruitResultsLabel?.run(SKAction.move(to: CGPoint(x: scene.frame.width / 1.5, y: -100), duration: 0.3))
-        scoreLabel?.run(SKAction.fadeOut(withDuration: 0.3))
         okLabel?.run(SKAction.fadeOut(withDuration: 0.3))
-        let endOkLabel = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { (endOkLabel) in
+        let endOkLabel = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: false) { (endOkLabel) in
             self.okLabel?.isHidden = true
+            self.scoreLabel?.run(SKAction.fadeOut(withDuration: 0.2))
+            self.resultsLabel?.run(SKAction.move(to: CGPoint(x: 0, y: (self.scene.frame.height / 2) + 200), duration: 0.1))
+            self.fruitResultsSprite?.run(SKAction.move(to: CGPoint(x: self.scene.frame.width / -1.5, y: 60), duration: 0.3))
+            self.gFruitResultsSprite?.run(SKAction.move(to: CGPoint(x: self.scene.frame.width / -1.5, y: -80), duration: 0.3))
+            self.fruitResultsLabel?.run(SKAction.move(to: CGPoint(x: self.scene.frame.width / 1.5, y: 40), duration: 0.3))
+            self.gFruitResultsLabel?.run(SKAction.move(to: CGPoint(x: self.scene.frame.width / 1.5, y: -100), duration: 0.3))
         }
         RunLoop.current.add(endOkLabel, forMode: RunLoop.Mode.common)
         endGame()
@@ -433,7 +585,10 @@ class GameManager {
         if scene.bestScore < Int(score) {
             scene.bestScore = Int(score)
         }
-        scene.showMenu()
+        let timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: false) { (timer) in
+            self.scene.showMenu()
+        }
+        RunLoop.current.add(timer, forMode: RunLoop.Mode.common)
         mapZoom = 2
         zooming = false
         zoomed = false

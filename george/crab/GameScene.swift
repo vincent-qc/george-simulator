@@ -11,6 +11,8 @@ import GameplayKit
 
 class GameScene: SKScene {
     
+    var worldNode: SKNode?
+    
     // Menu
     var title: SKLabelNode?
     var logo: SKSpriteNode?
@@ -31,6 +33,8 @@ class GameScene: SKScene {
     var allowMovement: Bool = false
 
     override func didMove(to view: SKView) {
+        worldNode = SKNode()
+        self.addChild(worldNode!)
         gameManager = GameManager(self)
         gameManager.gmInit()
         initMenu()
@@ -51,28 +55,31 @@ class GameScene: SKScene {
             let location = touch.location(in: self)
             let tNodes = nodes(at: location)
             for node in tNodes {
-                if node.name == "play" {
-                    playGame()
-                } else if node.name == "ok" && gameManager.showingResults {
-                    gameManager.endResults()
-                }
-                if !inGame || !allowMovement { return }
-                for cNode in (gameManager.control?.children)! {
-                    if node == cNode {
-                        nm = node.name!
-                        isMoving = true
+                if inGame || allowMovement {
+                    for cNode in (gameManager.control?.children)! {
+                        if node == cNode {
+                            nm = node.name!
+                            isMoving = true
+                            //run(SKAction.playSoundFileNamed("\(node.name ?? "none").wav", waitForCompletion: true))
+                        }
                     }
                 }
+                gameManager.uInteract(node.name ?? "none")
             }
         }
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        gameManager.changeAlpha()
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         isMoving = false
         gameManager.zooming = false
+        gameManager.changeAlpha()
     }
     
-    private func playGame() {
+    func playGame() {
         if inGame { return }
         allowMovement = true
         gameManager.startTimer()
