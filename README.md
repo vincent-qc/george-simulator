@@ -1,4 +1,5 @@
-# george-simulator
+The funne george
+================
 
-yo if i can get 100 moners of donation i will put dis on app store (sorry no android :/)
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+This is a joke dont take the app seriously
+I dont think it works on iOS 14.x - whatever im running
