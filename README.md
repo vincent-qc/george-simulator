@@ -1,5 +1,4 @@
-The funne george
+Some Ordinary IOS Game
 ================
 
-This is a joke dont take the app seriously
-I dont think it works on iOS 14.x - whatever im running
+Random IOS Game I build out of sheer bordom during the pandemic
